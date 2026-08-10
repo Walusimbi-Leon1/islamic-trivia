@@ -1,0 +1,38 @@
+🕌 Quran Trivia — Fast-Paced Multiplayer Quran Trivia for Discord!
+
+Race the clock with friends in a single global arena where everyone sees the same Quran question at the same time. Every 20 seconds a new question appears — answer fast, answer right, and climb the leaderboard!
+
+✨ FEATURES
+• Instant play — no rooms, no setup. Join a voice channel and start the activity. You're in the game immediately.
+• One global arena — every player around the world sees the same question at the same moment. Pure, fair competition.
+• 20-second question slots — the clock never stops. Questions rotate continuously, day and night.
+• Speed-based scoring — the first correct answer in each slot scores the most points. Fast thinkers win!
+• Persistent leaderboard — your username, avatar, and score stay in the game even if you leave and come back later. Your progress is never lost.
+• 4-answer multiple choice — clean, mobile-friendly buttons that work with Discord's gamepad and touch controls.
+• Reference tags on every question — each question shows its surah reference (like "Al-Baqara 2:255") so you can look it up in the Quran and learn as you play.
+• Beautiful emerald & gold design — a calm, elegant Islamic-inspired theme that feels at home on Discord.
+
+📖 QUESTION SOURCING
+Every question comes from the SGSS Quran — a simplified, easy-English presentation of the highly regarded Sahih International translation. All 114 surahs are in rotation, from Al-Faatiha to An-Naas. Questions cover:
+• Allah's names and attributes (Ar-Rahmaan, Al-Kareem…)
+• The prophets (Adam, Nuh, Ibrahim, Musa, Isa, Muhammad ﷺ…)
+• People and stories (Yusuf and his brothers, the People of the Cave, Maryam…)
+• Places (Makkah, Madinah, Egypt, Jerusalem…)
+• Teachings and guidance (prayer, charity, patience, justice…)
+• Well-known verses and themes
+
+🆕 FRESH QUESTIONS, ALWAYS
+A question-generation pipeline (GitHub Actions + AI) tops up the bank every 30 minutes, sourcing fresh passages from the SGSS Quran. The game never runs out, and repeats are minimized — there's always something new to learn.
+
+🌍 FOR THE MUSLIM COMMUNITY
+Quran Trivia was built specifically for Muslim users on Discord who want a fun, respectful way to test and grow their Quran knowledge. All content is kept accurate, respectful, and family-friendly.
+
+👥 HOW TO PLAY
+1. Join a Discord voice channel.
+2. Click "Start Activity" and pick Quran Trivia.
+3. Answer the multiple-choice questions before the 20-second timer runs out.
+4. Score points, climb the leaderboard, and challenge your friends to beat your rank!
+
+Free to play. No downloads. No sign-ups. Just open the activity and go.
+
+Start playing today and see how well you know the Quran! 🕌✨
