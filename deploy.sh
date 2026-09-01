@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deploy Islamic Trivia to Cloudflare Workers (same backend as Quran Trivia)
+# Deploy Quran Trivia to Cloudflare Workers
 # Secrets are NOT stored in this repo. Pass them via environment:
 #   CF_API_TOKEN          (Cloudflare API token, Workers Scripts edit)
 #   DISCORD_CLIENT_ID     (Discord application client ID — public, but keep env-driven)
@@ -8,7 +8,7 @@
 set -euo pipefail
 
 ACC=d21711ae11a362bc4d57d4fd48deae61
-NAME=islamic-trivia
+NAME=quran-trivia
 
 : "${CF_API_TOKEN:?CF_API_TOKEN required (Cloudflare API token)}"
 : "${DISCORD_CLIENT_ID:?DISCORD_CLIENT_ID required (Discord application client ID)}"

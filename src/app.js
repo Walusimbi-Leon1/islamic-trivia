@@ -1,5 +1,5 @@
 /**
- * Islamic Trivia 🕌 — client (same backend/questions/DB as Quran Trivia)
+ * Quran Trivia 🕌 — client
  *
  * Single GLOBAL room. Every player sees the same question at the same time:
  *   slot = floor((now - game.questionStart) / slotDuration)
