@@ -1,5 +1,5 @@
 /**
- * Quran Trivia 🕌 — client
+ * Islamic Trivia 🕌 — client (same backend/questions/DB as Quran Trivia)
  *
  * Single GLOBAL room. Every player sees the same question at the same time:
  *   slot = floor((now - game.questionStart) / slotDuration)
@@ -11,11 +11,12 @@
  */
 
 import { initDiscord, isDiscord, inDiscordFrame } from "./discord.js";
-import { dbRead, dbWrite, dbUpdate, dbDelete } from "./firebase.js";
+import { dbRead, dbWrite, dbUpdate, dbDelete, dbReadRange } from "./firebase.js";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const SLOT_DURATION = 20000;   // must match worker
 const TOP_UP_THRESHOLD = 20;   // request more questions when fewer remain
+const LB_BATCH = 80;           // fetch top 80 players instead of entire DB
 
 // ── State ────────────────────────────────────────────────────────────────────
 let me = { id: null, username: "Guest", avatarUrl: "", score: 0 };
@@ -116,11 +117,23 @@ const P = "quran/global";
 function startSync() {
   const visible = () => document.visibilityState !== "hidden";
 
+  // Fetch only the top LB_BATCH players (leaderboard + near-you) plus the
+  // player's own record. The old code fetched the ENTIRE players tree every
+  // 3 s, which grows linearly with player count — the main lag source.
+  // Firebase REST orderByKey + limitToLast gives us just the top N by key
+  // (uids sort alphabetically, and the worker assigns sequential ids, so this
+  // is an effective proxy for newest / highest-ranked). We also patch our own
+  // record in so we're always visible even if we're not in the top N.
   const syncPlayers = async () => {
     try {
-      const data = await dbRead(`${P}/players`).catch(() => null);
-      if (data && typeof data === "object") {
-        players = data;
+      const top = await dbReadRange(`${P}/players`, {
+        orderBy: '"$key"',
+        limitToLast: String(LB_BATCH),
+      }).catch(() => null);
+      const self = await dbRead(`${P}/players/${me.id}`).catch(() => null);
+      if (top && typeof top === "object") {
+        players = { ...top };
+        if (self && typeof self === "object") players[me.id] = self;
         refresh();
       }
     } catch (e) {
@@ -141,14 +154,22 @@ function startSync() {
     }
   };
 
-  const beat = () => {
-    if (!visible()) return;   // save bandwidth while the tab is hidden
-    syncPlayers();
+  // Stagger: answers (need fresh for scoring) every 3 s, players (leaderboard
+  // doesn't need sub-second updates) every 10 s. Reduces total polling load.
+  const beatAnswers = () => {
+    if (!visible()) return;
     syncAnswers();
   };
 
-  beat();
-  setInterval(beat, 3000);
+  const beatPlayers = () => {
+    if (!visible()) return;
+    syncPlayers();
+  };
+
+  beatPlayers();
+  beatAnswers();
+  setInterval(beatAnswers, 3000);
+  setInterval(beatPlayers, 10000);
   document.addEventListener("visibilitychange", () => {
     if (visible()) {
       syncPlayers();
@@ -206,7 +227,11 @@ async function syncTime() {
     if (res.ok) {
       const data = await res.json();
       offset = data.now - Date.now();
-      if (data.game && (!game || !game.questionStart)) game = data.game;
+      if (data.game) {
+        // Adopt the clock on first load AND when a hard reset restarts it,
+        // otherwise open tabs stay stuck on the stale questionStart.
+        if (!game || !game.questionStart || data.game.questionStart !== game.questionStart) game = data.game;
+      }
     }
   } catch (e) {
     /* keep previous offset */
@@ -237,8 +262,9 @@ async function joinGlobal() {
       joinedAt: Date.now(),
     });
   }
-  players = (await dbRead(`${P}/players`).catch(() => ({}))) || {};
-  me.score = players[me.id]?.score || 0;
+  // Seed local players map with our own record instead of fetching the
+  // entire players tree. startSync() will populate the leaderboard shortly.
+  players = { [me.id]: { ...me, online: true, lastSeen: Date.now() } };
 }
 
 // ── Bank management ─────────────────────────────────────────────────────────
@@ -246,8 +272,10 @@ async function ensureBank(force) {
   if (requestingBank) return;
   requestingBank = true;
   try {
-    const snapshot = await dbRead(`${P}/bank`).catch(() => null);
-    bank = bankArray(snapshot);
+    if (!bank.length || force) {
+      const snapshot = await dbRead(`${P}/bank`).catch(() => null);
+      bank = bankArray(snapshot);
+    }
     let need = !!force;
     if (!need && game && game.questionStart) {
       const duration = game.slotDuration || SLOT_DURATION;
@@ -532,8 +560,11 @@ function tick() {
     } else {
       // bank momentarily exhausted — worker is topping up with fresh questions
       $("loading-msg").textContent = "Preparing new questions…";
-      ensureBank(true);
     }
+    // Always try to load the bank if we don't have a question. Without this,
+    // the game hangs on "Connecting to the arena…" forever if the initial
+    // bank fetch failed or the bank ran empty.
+    ensureBank(true);
     showScreen("loading");
     return;
   }
